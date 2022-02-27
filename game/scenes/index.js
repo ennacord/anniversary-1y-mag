@@ -2,6 +2,17 @@ import Phaser from 'phaser';
 
 import StartScene from './start';
 
+// Import all assets
+const assetsImports = {};
+const r = require.context('../assets/', true);
+r.keys().forEach((key) => {
+  const [, type, sub, file] = key.split('/');
+  if (!assetsImports[type]) assetsImports[type] = {};
+  if (!assetsImports[type][sub]) assetsImports[type][sub] = {};
+  assetsImports[type][sub][file] = r(key);
+  return assetsImports[type][sub][file];
+});
+
 class IndexScene extends Phaser.Scene {
   loadingText = null;
 
@@ -20,6 +31,36 @@ class IndexScene extends Phaser.Scene {
 
     // Add scenes
     this.scene.add('start', StartScene);
+
+    // DEBUG: Display All Asset Keys
+    const assetKeys = [];
+
+    // Preload IMAGES
+    Object.entries(assetsImports.image).forEach(([imageSub, imageFiles]) => {
+      Object.entries(imageFiles).forEach(([imageKey, imageUrl]) => {
+        const key = `${imageSub}-${imageKey.split('.').slice(0, -1).join('.')}`;
+        assetKeys.push({ key, type: 'image', url: imageUrl });
+        this.load.image(key, imageUrl);
+      });
+    });
+
+    // Preload AUDIO
+    Object.entries(assetsImports.audio).forEach(([audioSub, audioFiles]) => {
+      Object.entries(audioFiles).forEach(([audioKey, audioUrl]) => {
+        const key = `${audioSub}-${audioKey.split('.').slice(0, -1).join('.')}`;
+        assetKeys.push({ key, type: 'audio', url: audioUrl });
+        this.load.audio(key, audioUrl);
+      });
+    });
+
+    // Preload ATLAS
+    const { common } = assetsImports.atlas;
+    console.log('common', common);
+    this.load.atlas('particles', common['particles.png'], common['particles.json']);
+    assetKeys.push({ key: 'particles', type: 'atlas' });
+
+    // DEBUG: Display All Asset Keys
+    console.table(assetKeys);
   }
 
   async create() {

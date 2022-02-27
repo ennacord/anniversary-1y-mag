@@ -26,6 +26,8 @@ module.exports = defineConfig({
       };
       return args;
     });
+    // Disable base64 image url-loader
+    config.module.rule('images').set('type', 'asset/resource');
     // Add entry point for the VN game
     config.entry('game').add('./game/index.js');
   },
